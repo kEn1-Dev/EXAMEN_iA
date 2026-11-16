@@ -1,0 +1,20 @@
+@model System.Web.Mvc.HandleErrorInfo
+@{
+    ViewBag.Title = "Error en la aplicación";
+}
+
+<div class="row">
+    <div class="col s12 m8 offset-m2">
+        <div class="card red lighten-5">
+            <div class="card-content red-text text-darken-4">
+                <span class="card-title"><strong>Ocurrió un problema al procesar la solicitud</strong></span>
+                <p>
+                    El sistema capturó un error inesperado. Verifique la conexión con la base de datos o el estado del puerto serie e inténtelo nuevamente.
+                </p>
+            </div>
+            <div class="card-action">
+                <a href="@Url.Action("Index", "Sensor")" class="btn teal darken-2 waves-effect waves-light">Volver al Monitor</a>
+            </div>
+        </div>
+    </div>
+</div>

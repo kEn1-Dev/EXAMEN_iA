@@ -1,0 +1,27 @@
+@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    <li>
+        <span class="white-text" style="padding: 0 12px;">
+            Usuario: <strong>@User.Identity.GetUserName()</strong>
+            @if (User.IsInRole("Administrador"))
+            {
+                <span class="badge-rol amber darken-2 black-text">Administrador</span>
+            }
+        </span>
+    </li>
+    <li>
+        @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", style = "display:inline;" }))
+        {
+            @Html.AntiForgeryToken()
+            <a href="javascript:document.getElementById('logoutForm').submit()" class="waves-effect waves-light btn-small red darken-2">
+                Cerrar sesión
+            </a>
+        }
+    </li>
+}
+else
+{
+    <li>@Html.ActionLink("Registrarse", "Register", "Account", routeValues: null, htmlAttributes: new { id = "registerLink" })</li>
+    <li>@Html.ActionLink("Iniciar sesión", "Login", "Account", routeValues: null, htmlAttributes: new { id = "loginLink" })</li>
+}

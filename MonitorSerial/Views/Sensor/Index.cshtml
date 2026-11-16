@@ -1,0 +1,187 @@
+@using MonitorSerial.Models
+@{
+    ViewBag.Title = "Monitor de Temperatura";
+    var puertos = ViewBag.Puertos as string[] ?? new string[0];
+    var dispositivos = ViewBag.Dispositivos as List<Dispositivo> ?? new List<Dispositivo>();
+    var ultimaLectura = ViewBag.UltimaLectura as Lectura;
+}
+
+<div class="row">
+    <div class="col s12">
+        <h4 class="teal-text text-darken-3">Vigilancia de Temperatura - Sala de Equipos</h4>
+        <p class="grey-text text-darken-1">
+            Seleccione el dispositivo registrado, verifique el puerto serie COM y presione <strong>«Actualizar»</strong> para consultar la temperatura actual mediante el comando <code>T?</code> sin recargar la página.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tarjeta con la temperatura actual (Parte 3.4) -->
+    <div class="col s12 m6">
+        <div class="card white z-depth-2">
+            <div class="card-content center-align">
+                <span class="card-title teal-text text-darken-3">Temperatura Actual</span>
+                <div id="valorTemperatura" class="temperatura-display">
+                    @(ultimaLectura != null ? ultimaLectura.Temperatura.ToString("0.00") + " °C" : "--.-- °C")
+                </div>
+                <p id="detalleLectura" class="grey-text text-darken-2">
+                    @if (ultimaLectura != null && ultimaLectura.Dispositivo != null)
+                    {
+                        <span>Última lectura: <strong>@ultimaLectura.Dispositivo.Nombre</strong> (@ultimaLectura.Dispositivo.PuertoCOM) — @ultimaLectura.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                    }
+                    else
+                    {
+                        <span>Sin lecturas registradas aún.</span>
+                    }
+                </p>
+            </div>
+            <div class="card-action center-align">
+                <a href="@Url.Action("Index", "Lecturas")" class="teal-text text-darken-3">Ver Historial Completo</a>
+            </div>
+        </div>
+
+        <!-- Tarjeta con la lista de puertos detectados en el equipo -->
+        <div class="card white z-depth-1">
+            <div class="card-content">
+                <span class="card-title teal-text text-darken-3">Puertos Serie Detectados en el Equipo</span>
+                @if (puertos.Length > 0)
+                {
+                    <ul class="collection">
+                        @foreach (var p in puertos)
+                        {
+                            <li class="collection-item">
+                                <strong>@p</strong> — Parámetros: 9600 baudios, 8 bits, sin paridad, 1 bit de parada (8N1)
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="amber-text text-darken-4">
+                        No se detectaron puertos físicos abiertos en este momento (<code>SerialPort.GetPortNames()</code> vacío). Se usará el puerto configurado en el dispositivo seleccionado.
+                    </p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de control: Selector de dispositivo, selector de puerto y botón «Actualizar» -->
+    <div class="col s12 m6">
+        <div class="card white z-depth-2">
+            <div class="card-content">
+                <span class="card-title teal-text text-darken-3">Consulta por Puerto Serie</span>
+
+                <div class="section">
+                    <label for="selectDispositivo" class="black-text"><strong>1. Selector de Dispositivo</strong></label>
+                    <select id="selectDispositivo" class="browser-default">
+                        @if (dispositivos.Count == 0)
+                        {
+                            <option value="">-- No hay dispositivos activos registrados --</option>
+                        }
+                        else
+                        {
+                            foreach (var d in dispositivos)
+                            {
+                                <option value="@d.DispositivoId" data-puerto="@d.PuertoCOM">
+                                    @d.Nombre (Puerto asignado: @d.PuertoCOM)
+                                </option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="section">
+                    <label for="selectPuerto" class="black-text"><strong>2. Puerto COM a Consultar</strong></label>
+                    <select id="selectPuerto" class="browser-default">
+                        <option value="">Usar puerto predeterminado del dispositivo</option>
+                        @foreach (var p in puertos)
+                        {
+                            <option value="@p">@p (Detectado en el sistema)</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="section center-align" style="margin-top: 20px;">
+                    <button id="btnActualizar" type="button" class="btn-large waves-effect waves-light teal darken-2">
+                        Actualizar
+                    </button>
+                </div>
+
+                <!-- Mensaje de confirmación o de error sin recargar la página -->
+                <div id="mensajeEstado" class="card-panel hide" style="margin-top: 20px;">
+                    <span id="textoMensaje"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        (function () {
+            var btnActualizar = document.getElementById('btnActualizar');
+            var selectDispositivo = document.getElementById('selectDispositivo');
+            var selectPuerto = document.getElementById('selectPuerto');
+            var valorTemperatura = document.getElementById('valorTemperatura');
+            var detalleLectura = document.getElementById('detalleLectura');
+            var mensajeEstado = document.getElementById('mensajeEstado');
+            var textoMensaje = document.getElementById('textoMensaje');
+
+            function mostrarMensaje(exito, texto) {
+                mensajeEstado.className = exito
+                    ? 'card-panel green lighten-4 green-text text-darken-4'
+                    : 'card-panel red lighten-4 red-text text-darken-4';
+                textoMensaje.textContent = texto;
+
+                if (typeof M !== 'undefined' && M.toast) {
+                    M.toast({
+                        html: texto,
+                        classes: exito ? 'green darken-2' : 'red darken-2'
+                    });
+                }
+            }
+
+            btnActualizar.addEventListener('click', function () {
+                var dispositivoId = selectDispositivo.value;
+                var puertoCom = selectPuerto.value;
+
+                if (!dispositivoId) {
+                    mostrarMensaje(false, 'Seleccione un dispositivo antes de consultar.');
+                    return;
+                }
+
+                btnActualizar.disabled = true;
+                btnActualizar.textContent = 'Consultando...';
+
+                $.ajax({
+                    url: '@Url.Action("Leer", "Sensor")',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        dispositivoId: dispositivoId,
+                        puertoCom: puertoCom
+                    },
+                    success: function (respuesta) {
+                        if (respuesta && respuesta.exito) {
+                            valorTemperatura.textContent = respuesta.temperatura + ' °C';
+                            detalleLectura.innerHTML = 'Última lectura: <strong>' + respuesta.dispositivo + '</strong> (' + respuesta.puerto + ') — ' + respuesta.fechaHora;
+                            mostrarMensaje(true, respuesta.mensaje);
+                        } else {
+                            var msgError = (respuesta && respuesta.mensaje)
+                                ? respuesta.mensaje
+                                : 'No se pudo obtener la lectura del sensor.';
+                            mostrarMensaje(false, msgError);
+                        }
+                    },
+                    error: function () {
+                        mostrarMensaje(false, 'Error de comunicación con el servidor al intentar leer el puerto serie.');
+                    },
+                    complete: function () {
+                        btnActualizar.disabled = false;
+                        btnActualizar.textContent = 'Actualizar';
+                    }
+                });
+            });
+        })();
+    </script>
+}

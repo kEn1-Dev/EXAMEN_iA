@@ -1,0 +1,66 @@
+@model IEnumerable<MonitorSerial.Models.Lectura>
+@{
+    ViewBag.Title = "Historial de Lecturas";
+    bool esAdministrador = User.IsInRole("Administrador");
+}
+
+<div class="row">
+    <div class="col s12">
+        <div class="card white z-depth-1">
+            <div class="card-content">
+                <div class="row" style="margin-bottom: 0;">
+                    <div class="col s12 m8">
+                        <span class="card-title teal-text text-darken-3">Historial de Lecturas de Temperatura</span>
+                        <p class="grey-text text-darken-1">
+                            Ordenado de la lectura más reciente a la más antigua.
+                        </p>
+                    </div>
+                    <div class="col s12 m4 right-align" style="margin-top: 12px;">
+                        <a href="@Url.Action("Create")" class="btn waves-effect waves-light teal darken-2">
+                            Registrar Lectura Manual
+                        </a>
+                    </div>
+                </div>
+
+                <table class="striped highlight responsive-table" style="margin-top: 16px;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Dispositivo</th>
+                            <th>Puerto COM</th>
+                            <th>Temperatura (°C)</th>
+                            <th>Fecha y Hora</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.LecturaId</td>
+                                <td>@(item.Dispositivo != null ? item.Dispositivo.Nombre : "-")</td>
+                                <td>@(item.Dispositivo != null ? item.Dispositivo.PuertoCOM : "-")</td>
+                                <td><strong>@item.Temperatura.ToString("0.00") °C</strong></td>
+                                <td>@item.FechaHora.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>
+                                    <a href="@Url.Action("Details", new { id = item.LecturaId })" class="btn-small waves-effect waves-light blue darken-1">
+                                        Detalles
+                                    </a>
+                                    @if (esAdministrador)
+                                    {
+                                        <a href="@Url.Action("Edit", new { id = item.LecturaId })" class="btn-small waves-effect waves-light amber darken-3">
+                                            Editar
+                                        </a>
+                                        <a href="@Url.Action("Delete", new { id = item.LecturaId })" class="btn-small waves-effect waves-light red darken-2">
+                                            Eliminar
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

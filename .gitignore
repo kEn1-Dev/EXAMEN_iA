@@ -1,0 +1,9 @@
+# Ignorar carpetas requeridas por las reglas de entrega del examen
+[Bb]in/
+[Oo]bj/
+[Pp]ackages/
+.vs/
+*.user
+*.suo
+IIS_Express_Portable/
+Publicacion_IIS/App_Data/

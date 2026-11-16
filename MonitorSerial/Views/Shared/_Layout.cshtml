@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - MonitorSerial</title>
+    @Styles.Render("~/Content/css")
+</head>
+<body>
+    <!-- Parte 1.2 y 1.3: Barra de navegación Materialize local con enlaces del sistema y usuario en sesión -->
+    <nav class="teal darken-3" role="navigation">
+        <div class="nav-wrapper container">
+            <a href="@Url.Action("Index", "Sensor")" class="brand-logo">MonitorSerial</a>
+            <ul class="right hide-on-med-and-down">
+                <li><a href="@Url.Action("Index", "Sensor")">Monitor de Temperatura</a></li>
+                <li><a href="@Url.Action("Index", "Lecturas")">Historial de Lecturas</a></li>
+                @Html.Partial("_LoginPartial")
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        @RenderBody()
+    </main>
+
+    <footer class="page-footer teal darken-4">
+        <div class="footer-copyright">
+            <div class="container">
+                &copy; @DateTime.Now.Year - MonitorSerial | Vigilancia de Temperatura en Sala de Equipos
+            </div>
+        </div>
+    </footer>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/materialize")
+    <script>
+        // Parte 1.2: Inicialización automática de componentes Materialize
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof M !== 'undefined' && M.AutoInit) {
+                M.AutoInit();
+            }
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

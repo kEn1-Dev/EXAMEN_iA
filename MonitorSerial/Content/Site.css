@@ -1,0 +1,43 @@
+/* Estilos complementarios para MonitorSerial con Materialize CSS local */
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    background-color: #f4f6f8;
+}
+
+main {
+    flex: 1 0 auto;
+    padding-top: 24px;
+    padding-bottom: 32px;
+}
+
+.temperatura-display {
+    font-size: 3.8rem;
+    font-weight: 700;
+    color: #00695c;
+    margin: 12px 0;
+}
+
+.badge-rol {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.field-validation-error,
+.validation-summary-errors {
+    color: #c62828;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Mostrar selectores nativos estilizados dentro de tarjetas cuando se requiera actualización dinámica */
+select.browser-default {
+    border: 1px solid #b0bec5;
+    border-radius: 4px;
+    background-color: #ffffff;
+    height: 3rem;
+}
