@@ -77,19 +77,18 @@ Cuando clones el repositorio en el servidor `192.168.1.100`, realiza lo siguient
    * Ejecuta `script.sql` en la instancia de SQL Server.
    * Ajusta el `Data Source` en `Web.config` si SQL Server escucha en un puerto o instancia específica.
 
-### Escenario B: Si el servidor `192.168.1.100` corre Linux con Docker (Portainer)
-1. Dado que el código fuente entregable (`MonitorSerial/`) debe permanecer en **ASP.NET MVC 5 (.NET Framework 4.7.2)** para la revisión del profesor, **NO modifiques ni borres** los archivos de `MonitorSerial/` que exige la rúbrica (`MonitorModel.edmx`, `BundleConfig.cs`, `ServicioSerial.cs`, etc.).
-2. Para exponer el servicio web en Linux Docker en `http://192.168.1.100:8090`:
-   * Puedes levantar un contenedor con `mono` / `xsp4` (ej. imagen `mono:latest` ejecutando `xsp4 --port 8090 --address 0.0.0.0` sobre `Publicacion_IIS`), **o** un contenedor ligero en una subcarpeta `docker/` que sirva exactamente las mismas rutas, vistas Materialize locales y base de datos SQL Server (`mcr.microsoft.com/mssql/server:2022-latest`) en el puerto `8090`, manteniendo intacta la carpeta `MonitorSerial/` para la evaluación académica.
-3. Verifica que exista el archivo `.gitignore` en la raíz del repositorio excluyendo:
-   ```gitignore
-   [Bb]in/
-   [Oo]bj/
-   [Pp]ackages/
-   *.suo
-   *.user
-   .vs/
-   ```
+### Escenario B: Despliegue en un solo comando con Docker (Ya incluido en el repositorio)
+El repositorio **ya incluye `docker-compose.yml` y `docker/Dockerfile`** preconfigurados en la raíz.
+Solo debes ejecutar en la raíz del repositorio clonado:
+
+```bash
+docker compose up -d --build
+```
+
+Esto levantará automáticamente dos contenedores sin necesidad de configurar nada más:
+1. **`monitorserial-sql` (`mcr.microsoft.com/mssql/server:2022-latest` en el puerto `14330`):** Instancia real de SQL Server 2022 donde se crea automáticamente la base de datos `MonitorSerial`, las tablas `Dispositivo` y `Lectura` con su clave foránea `FK_Lectura_Dispositivo` y los datos de `script.sql`.
+2. **`monitorserial-web` (en el puerto `8090` -> `http://192.168.1.100:8090`):** Servidor web conectado al contenedor `sqlserver` sirviendo las vistas de Materialize local, login por roles (`admin@monitorserial.local` y `operador@monitorserial.local` con clave `DemoLab2026`), lectura AJAX en `/Sensor/Leer` y el historial en `/Lecturas`.
+3. La carpeta `MonitorSerial/` en la raíz permanece 100% intacta y limpia (sin `bin`, `obj` ni `packages`) para la revisión académica de Visual Studio / IIS.
 4. Una vez que el servicio responda en `http://192.168.1.100:8090`, indícale al usuario que agregue la ruta pública en **Cloudflare Zero Trust > Networks > Tunnels > Public Hostname**:
    * **Subdomain:** `monitorserial`
    * **Domain:** `kenys.site`

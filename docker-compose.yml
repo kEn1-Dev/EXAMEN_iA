@@ -1,0 +1,32 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: monitorserial-sql
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=LabDocker_Sql2026!
+      - MSSQL_PID=Express
+    ports:
+      - "14330:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./script.sql:/var/opt/mssql/script.sql:ro
+
+  monitorserial-web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: monitorserial-web
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
+      - SQL_CONNECTION_STRING=Server=sqlserver,1433;Database=MonitorSerial;User Id=sa;Password=LabDocker_Sql2026!;TrustServerCertificate=True;Encrypt=False;
+      - MASTER_CONNECTION_STRING=Server=sqlserver,1433;Database=master;User Id=sa;Password=LabDocker_Sql2026!;TrustServerCertificate=True;Encrypt=False;
+    depends_on:
+      - sqlserver
+
+volumes:
+  sql_data:
